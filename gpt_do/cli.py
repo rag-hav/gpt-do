@@ -37,9 +37,29 @@ def do(request: str, debug: bool, yes: bool, model: str):
     do = get_doer(model)(debug=debug)
     response = do.query(" ".join(request))
     click.echo(click.style(response["explanation"], bold=True))
-    click.echo(click.style("\n".join(response["commands"]), fg="green"))
-    if yes or click.confirm("Do you want to continue?"):
-        do.execute(response["commands"])
+
+    script = "\n".join(response["commands"])
+    if len(script) == 0:
+        return
+
+    click.echo(click.style(script, fg="green"))
+
+    if yes:
+        res = "y" 
+    else: 
+        res = click.prompt("Execute this command(y) or edit(e) it?", 
+                           type=click.Choice(("y", "e", "N"), 
+                           case_sensitive=False), show_choices=True)
+
+    if res == "e":
+        if edited := click.edit(script, require_save=True, extension=".sh"):
+            script = edited 
+        else:
+            # if user does not save we do not run the command
+            res = "N"
+
+    if res != "N":
+        do.execute(script)
 
 
 if __name__ == "__main__":

@@ -117,8 +117,8 @@ class Doer(ABC):
         self.save_state()
         return resp
 
-    def execute(self, commands: list) -> None:
+    def execute(self, script: str) -> None:
         f = tempfile.NamedTemporaryFile(suffix=f".{self.shell}")
-        f.write("\n".join(commands).encode("utf-8"))
+        f.write(script.encode("utf-8"))
         f.flush()
         os.execl(self.shell_path, "-c", f.name)
